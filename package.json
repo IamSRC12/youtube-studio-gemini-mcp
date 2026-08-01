@@ -1,0 +1,40 @@
+{
+  "name": "youtube-studio-gemini-mcp",
+  "version": "1.0.0",
+  "description": "Zero-cost, persistent YouTube Studio Automation Engine powered by Google Gemini API, YouTube Data API MCP Server, and Ngrok Gateway.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "auth-helper": "tsx src/auth_helper.ts"
+  },
+  "keywords": [
+    "gemini",
+    "youtube",
+    "mcp",
+    "ngrok",
+    "automation",
+    "ai-agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^0.1.1",
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "ngrok": "^5.0.0-beta.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
