@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { startExpressMcpServer } from './mcp_server.js';
 import { setupNgrokTunnel } from './tunnel.js';
-import { createMcpClient, runAutomationLoop } from './agent.ts';
+import { createMcpClient, runAutomationLoop } from './agent.js';
 
 dotenv.config();
 
