@@ -122,8 +122,14 @@ export function createYouTubeMcpServer() {
         const auth = getOAuth2Client();
         const youtube = google.youtube({ version: "v3", auth });
 
+        const channelRes = await youtube.channels.list({ mine: true, part: ["id"] });
+        const channelId = channelRes.data.items?.[0]?.id;
+        if (!channelId) {
+          throw new Error("No channel found for authenticated user.");
+        }
+
         const response = await youtube.commentThreads.list({
-          mine: true,
+          allThreadsRelatedToChannelId: channelId,
           part: ["snippet", "replies"],
           maxResults: Math.min(maxResults, 50),
           order: "time",
@@ -131,11 +137,11 @@ export function createYouTubeMcpServer() {
 
         const threads = response.data.items || [];
         const unanswered = threads
-          .filter((t) => {
+          .filter((t: any) => {
             const totalReplies = t.snippet?.totalReplyCount || 0;
             return totalReplies === 0;
           })
-          .map((t) => {
+          .map((t: any) => {
             const topComment = t.snippet?.topLevelComment?.snippet;
             return {
               threadId: t.id,
