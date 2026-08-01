@@ -2,15 +2,37 @@ import express from 'express';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
 dotenv.config();
 
-const clientId = process.env.YOUTUBE_CLIENT_ID;
-const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+let clientId = process.env.YOUTUBE_CLIENT_ID;
+let clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+
+if ((!clientId || !clientSecret) && process.env.YOUTUBE_MCP_CLIENT_SECRET) {
+  try {
+    let secretPath = process.env.YOUTUBE_MCP_CLIENT_SECRET;
+    if (secretPath.startsWith('~')) {
+      secretPath = path.join(os.homedir(), secretPath.slice(1));
+    }
+    if (fs.existsSync(secretPath)) {
+      const fileContent = JSON.parse(fs.readFileSync(secretPath, 'utf8'));
+      const details = fileContent.installed || fileContent.web;
+      if (details) {
+        clientId = details.client_id;
+        clientSecret = details.client_secret;
+      }
+    }
+  } catch (_) {}
+}
+
 const port = Number(process.env.PORT) || 3000;
 const redirectUri = `http://localhost:${port}/oauth2callback`;
 
 if (!clientId || !clientSecret) {
-  console.error("❌ Error: YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET must be configured in .env first.");
+  console.error("❌ Error: YOUTUBE_CLIENT_ID & YOUTUBE_CLIENT_SECRET (or YOUTUBE_MCP_CLIENT_SECRET file path) must be configured in .env first.");
   process.exit(1);
 }
 

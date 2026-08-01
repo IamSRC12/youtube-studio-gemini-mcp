@@ -8,18 +8,48 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
 /**
  * Returns an OAuth2 client configured with environment variables
- * and automatically refreshes expired access tokens.
+ * or client_secret.json path, automatically refreshing expired access tokens.
  */
 export function getOAuth2Client() {
-  const clientId = process.env.YOUTUBE_CLIENT_ID;
-  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  let clientId = process.env.YOUTUBE_CLIENT_ID;
+  let clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
   const refreshToken = process.env.YOUTUBE_REFRESH_TOKEN;
 
-  if (!clientId || !clientSecret || !refreshToken) {
+  // Fallback to parsing client_secret.json file if path is specified in YOUTUBE_MCP_CLIENT_SECRET
+  if ((!clientId || !clientSecret) && process.env.YOUTUBE_MCP_CLIENT_SECRET) {
+    try {
+      let secretPath = process.env.YOUTUBE_MCP_CLIENT_SECRET;
+      if (secretPath.startsWith('~')) {
+        secretPath = path.join(os.homedir(), secretPath.slice(1));
+      }
+      if (fs.existsSync(secretPath)) {
+        const fileContent = JSON.parse(fs.readFileSync(secretPath, 'utf8'));
+        const details = fileContent.installed || fileContent.web;
+        if (details) {
+          clientId = details.client_id;
+          clientSecret = details.client_secret;
+        }
+      }
+    } catch (err: any) {
+      console.warn('[OAuth] Could not parse YOUTUBE_MCP_CLIENT_SECRET file:', err.message);
+    }
+  }
+
+  if (!clientId || !clientSecret) {
     throw new Error(
-      "Missing YouTube API credentials in environment variables (YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN)."
+      "Missing YouTube API credentials. Please set YOUTUBE_CLIENT_ID & YOUTUBE_CLIENT_SECRET, or YOUTUBE_MCP_CLIENT_SECRET in your .env file."
+    );
+  }
+
+  if (!refreshToken) {
+    throw new Error(
+      "Missing YOUTUBE_REFRESH_TOKEN. Run 'npm run auth-helper' to generate one."
     );
   }
 
